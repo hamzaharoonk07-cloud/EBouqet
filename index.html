@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>E Bouqet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600&family=Cormorant:ital,wght@1,400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/konva@9.3.6/konva.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+:root {
+  --blush:      #F9C4D2;
+  --rose:       #E8799A;
+  --hot:        #D4457A;
+  --deep:       #A82A5E;
+  --petal:      #FDEEF3;
+  --cream:      #FFF6F9;
+  --mauve:      #C96B90;
+  --lavender:   #E8C5D8;
+  --ivory:      #FFF9FC;
+  --charcoal:   #2C1822;
+  --warm-gray:  #8B6575;
+  --shadow-sm:  0 2px 12px rgba(168,42,94,.10);
+  --shadow-md:  0 8px 32px rgba(168,42,94,.15);
+  --shadow-lg:  0 20px 60px rgba(168,42,94,.20);
+  --glow:       0 0 60px rgba(232,121,154,.30);
+  --glass:      rgba(255,246,249,.82);
+  --glass-border: rgba(232,121,154,.25);
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+html, body { height:100%; overflow:hidden; }
+body {
+  font-family: var(--font-body);
+  background: linear-gradient(135deg, #FCE4EC 0%, #FFF0F5 35%, #FCE4F0 65%, #F8D7E8 100%);
+  color: var(--charcoal);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================
+   FALLING FLOWERS CANVAS
+   ========================================= */
+#flowerCanvas {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+}
+
+/* =========================================
+   SHIMMER OVERLAY
+   ========================================= */
+.shimmer-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: 
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(249,196,210,.35) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 80%, rgba(232,197,216,.40) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 60% 30%, rgba(212,69,122,.08) 0%, transparent 50%);
+}
+
+/* =========================================
+   LANDING PAGE
+   ========================================= */
+#landing {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity .9s cubic-bezier(.4,0,.2,1), transform .9s cubic-bezier(.4,0,.2,1);
+}
+#landing.hidden { opacity: 0; transform: scale(1.04); pointer-events: none; }
+
+.landing-inner {
+  text-align: center;
+  max-width: 820px;
+  padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 5vw, 2rem);
+  position: relative; z-index: 5;
+}
+
+.brand-pill {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--blush), var(--lavender));
+  color: var(--deep);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(9px, 2vw, 11px);
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  padding: 8px 22px;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  margin-bottom: clamp(1.2rem, 3vw, 1.8rem);
+  opacity: 0;
+  animation: slideUp .8s .2s cubic-bezier(.2,.8,.2,1) forwards;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(38px, 8.5vw, 96px);
+  line-height: 1.00;
+  letter-spacing: -.01em;
+  color: var(--charcoal);
+  margin-bottom: clamp(.8rem, 2vw, 1.2rem);
+  opacity: 0;
+  animation: slideUp .9s .45s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.hero-title .cursive {
+  font-family: 'Cormorant', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--hot);
+  display: block;
+}
+
+.hero-sub {
+  font-size: clamp(14px, 2.2vw, 18px);
+  color: var(--warm-gray);
+  font-weight: 400;
+  letter-spacing: .06em;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  opacity: 0;
+  animation: slideUp .9s .7s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.cta-wrap {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; flex-wrap: wrap;
+  opacity: 0;
+  animation: slideUp .9s .9s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.cta-btn {
+  background: linear-gradient(135deg, var(--hot) 0%, var(--deep) 100%);
+  color: #fff;
+  border: none;
+  padding: clamp(14px,2.5vw,18px) clamp(28px,5vw,52px);
+  border-radius: 9999px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(12px,1.8vw,14px);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-md), 0 0 0 0 rgba(212,69,122,.4);
+  transition: all .4s cubic-bezier(.2,.8,.2,1);
+  position: relative; overflow: hidden;
+}
+.cta-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.18) 0%, transparent 100%);
+  opacity: 0; transition: opacity .3s;
+}
+.cta-btn:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-lg), 0 0 0 6px rgba(212,69,122,.15); }
+.cta-btn:hover::before { opacity: 1; }
+
+.cta-sub {
+  font-size: 12px; color: var(--warm-gray); letter-spacing: .12em; text-transform: uppercase;
+}
+
+.stats-row {
+  display: flex; gap: clamp(1.5rem, 5vw, 4rem); justify-content: center; flex-wrap: wrap;
+  margin-top: clamp(2.5rem, 6vw, 5rem);
+  opacity: 0;
+  animation: slideUp .9s 1.15s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 5vw, 44px);
+  color: var(--hot);
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: clamp(9px,1.5vw,11px);
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+  margin-top: 5px;
+}
+
+/* floating flower ornaments on landing */
+.land-flower {
+  position: absolute;
+  opacity: .18;
+  pointer-events: none;
+  animation: floatOrn 6s ease-in-out infinite;
+}
+.land-flower:nth-child(1) { top: 8%; left: 4%; width: clamp(60px,10vw,110px); animation-delay: 0s; }
+.land-flower:nth-child(2) { top: 5%; right: 6%; width: clamp(80px,12vw,130px); animation-delay: -2s; }
+.land-flower:nth-child(3) { bottom: 10%; left: 6%; width: clamp(70px,9vw,100px); animation-delay: -4s; }
+.land-flower:nth-child(4) { bottom: 8%; right: 5%; width: clamp(90px,11vw,120px); animation-delay: -1s; }
+@keyframes floatOrn { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-14px) rotate(5deg)} }
+
+@keyframes slideUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+
+/* =========================================
+   APP SHELL
+   ========================================= */
+#app { display:none; flex-direction:column; height:100vh; opacity:0; transition:opacity .6s ease; }
+#app.visible { display:flex; opacity:1; }
+
+/* =========================================
+   HEADER
+   ========================================= */
+header {
+  height: 60px;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex; align-items: center;
+  padding: 0 clamp(10px, 2vw, 20px);
+  justify-content: space-between;
+  z-index: 100; position: relative; flex-shrink: 0;
+  box-shadow: 0 1px 0 rgba(255,255,255,.8), var(--shadow-sm);
+}
+.logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--charcoal);
+  white-space: nowrap;
+}
+.logo span { color: var(--hot); font-style: italic; }
+.tag-mini {
+  font-size: 9px;
+  color: var(--warm-gray);
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--glass-border);
+  display: none;
+}
+@media (min-width: 600px) { .tag-mini { display: block; } }
+
+.header-tools { display:flex; gap:4px; }
+.tool-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  border: none; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--charcoal); transition: all .2s;
+}
+.tool-btn:hover { background: rgba(212,69,122,.1); color: var(--hot); }
+.tool-btn.active { background: linear-gradient(135deg, var(--rose), var(--hot)); color: #fff; box-shadow: var(--shadow-sm); }
+.tool-btn svg { width: 16px; height: 16px; }
+
+/* Mobile: hide some header tools */
+@media (max-width: 520px) {
+  .tool-btn.hide-xs { display: none; }
+}
+
+.header-right { display:flex; align-items:center; gap:8px; }
+.btn-export {
+  background: linear-gradient(135deg, var(--rose) 0%, var(--hot) 100%);
+  color: #fff; border: none;
+  padding: 9px clamp(12px,2.5vw,20px);
+  border-radius: 9999px;
+  font-weight: 600; font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase;
+  cursor: pointer; transition: all .3s;
+  display: flex; align-items: center; gap: 7px;
+  font-family: inherit;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+.btn-export:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* =========================================
+   MAIN LAYOUT
+   ========================================= */
+main { flex:1; display:flex; overflow:hidden; position:relative; min-height:0; }
+
+/* =========================================
+   SIDEBAR
+   ========================================= */
+aside.sidebar {
+  width: clamp(220px, 25vw, 300px);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--glass-border);
+  overflow-y: auto; padding: 16px;
+  z-index: 10; flex-shrink: 0;
+  box-shadow: 2px 0 20px rgba(168,42,94,.06);
+}
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--blush); border-radius: 3px; }
+
+.search-box {
+  width: 100%; padding: 10px 14px 10px 38px;
+  border-radius: 9999px; border: 1.5px solid var(--glass-border);
+  background: var(--cream);
+  font-size: 12px; font-family: inherit;
+  color: var(--charcoal); outline: none;
+  transition: all .25s;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23C96B90' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 13px center;
+}
+.search-box:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(232,121,154,.2); }
+.search-box::placeholder { color: var(--lavender); }
+
+.cat-tabs { display:flex; gap:4px; margin: 14px 0 12px; flex-wrap:wrap; }
+.cat-tab {
+  padding: 6px 11px; border-radius: 9999px;
+  border: 1.5px solid var(--glass-border); background: transparent;
+  cursor: pointer; font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--warm-gray);
+  transition: all .25s; font-family: inherit; font-weight: 600;
+}
+.cat-tab.active {
+  background: linear-gradient(135deg, var(--rose), var(--hot));
+  color: #fff; border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+.cat-tab:hover:not(.active) { background: rgba(212,69,122,.1); color: var(--hot); border-color: var(--rose); }
+
+.section-label {
+  font-size: 9px; letter-spacing: .28em;
+  text-transform: uppercase; color: var(--mauve);
+  font-weight: 600; margin: 16px 0 9px;
+}
+.asset-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.asset {
+  aspect-ratio: 1;
+  background: var(--cream);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 12px; cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 5px; transition: all .25s; position:relative; overflow:hidden;
+}
+.asset::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(249,196,210,.4), rgba(212,69,122,.1));
+  opacity: 0; transition: opacity .25s;
+}
+.asset:hover { transform: translateY(-4px) scale(1.03); box-shadow: var(--shadow-md); border-color: var(--rose); }
+.asset:hover::after { opacity: 1; }
+.asset:active { transform: scale(.96); }
+.asset-svg { width:44px; height:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; z-index:1; }
+.asset-svg svg { width:100%; height:100%; }
+.asset-name { font-size:8.5px; letter-spacing:.04em; text-align:center; color:var(--warm-gray); margin-top:3px; line-height:1.2; font-weight:600; position:relative; z-index:1; }
+.asset:hover .asset-name { color:var(--hot); }
+
+/* =========================================
+   CANVAS AREA
+   ========================================= */
+.canvas-wrap {
+  flex: 1; display:flex; align-items:center; justify-content:center;
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(ellipse at 30% 25%, rgba(249,196,210,.3) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 80%, rgba(232,197,216,.25) 0%, transparent 55%),
+    var(--petal);
+}
+
+/* Decorative corner blossoms */
+.canvas-wrap::before, .canvas-wrap::after {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(249,196,210,.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.canvas-wrap::before { top: -80px; left: -80px; }
+.canvas-wrap::after { bottom: -80px; right: -80px; }
+
+#canvasContainer {
+  width: 600px; height: 800px;
+  background: var(--ivory);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg), var(--glow);
+  position: relative;
+  background-image: radial-gradient(circle, rgba(212,69,122,.18) 1px, transparent 1px);
+  background-size: 16px 16px;
+  transition: transform .3s ease;
+  max-width: 100%; max-height: calc(100% - 80px);
+}
+#canvasContainer.no-grid { background-image: none; }
+
+.canvas-corner { position:absolute; width:14px; height:14px; border:1.5px solid var(--rose); pointer-events:none; }
+.canvas-corner.tl { top:-1px; left:-1px; border-right:0; border-bottom:0; border-radius:2px 0 0 0; }
+.canvas-corner.tr { top:-1px; right:-1px; border-left:0; border-bottom:0; border-radius:0 2px 0 0; }
+.canvas-corner.bl { bottom:-1px; left:-1px; border-right:0; border-top:0; border-radius:0 0 0 2px; }
+.canvas-corner.br { bottom:-1px; right:-1px; border-left:0; border-top:0; border-radius:0 0 2px 0; }
+
+/* =========================================
+   PROPS PANEL
+   ========================================= */
+aside.props {
+  width: clamp(200px, 22vw, 260px);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-left: 1px solid var(--glass-border);
+  overflow-y: auto; padding: 16px;
+  z-index: 10; flex-shrink: 0;
+  box-shadow: -2px 0 20px rgba(168,42,94,.06);
+}
+.props::-webkit-scrollbar { width: 5px; }
+.props::-webkit-scrollbar-thumb { background: var(--blush); border-radius: 3px; }
+
+.prop-section { margin-bottom: 22px; }
+.prop-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; }
+.prop-row label { font-size:10px; letter-spacing:.12em; color:var(--warm-gray); text-transform:uppercase; font-weight:600; }
+.prop-val { font-size: 11px; color: var(--hot); font-weight: 600; font-family: var(--font-body); }
+
+.slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 4px;
+  background: linear-gradient(to right, var(--blush), var(--rose)); outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose), var(--hot));
+  cursor: pointer; border: 2.5px solid #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-row { display:grid; grid-template-columns:repeat(2,1fr); gap:5px; }
+.btn-mini {
+  background: var(--cream); border: 1.5px solid var(--glass-border);
+  padding: 7px 5px; border-radius: 8px; cursor: pointer;
+  font-size: 9.5px; font-family: inherit;
+  color: var(--charcoal); transition: all .2s;
+  letter-spacing: .04em; font-weight: 600;
+}
+.btn-mini:hover { background: linear-gradient(135deg, var(--rose), var(--hot)); color: #fff; border-color: transparent; box-shadow: var(--shadow-sm); }
+
+.empty-msg { text-align:center; color:var(--lavender); font-size:12px; padding:36px 8px; }
+.empty-msg svg { width:30px; height:30px; margin-bottom:10px; opacity:.4; color:var(--rose); }
+
+/* =========================================
+   BOTTOM BAR
+   ========================================= */
+.bottom-bar {
+  position: absolute; bottom: 14px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 9999px;
+  padding: 9px 20px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow-md); z-index: 50;
+  white-space: nowrap;
+}
+.bb-item { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--warm-gray); letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
+.bb-divider { width:1px; height:16px; background:var(--glass-border); }
+.zoom-btn {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid var(--glass-border); background: transparent;
+  cursor: pointer; display:flex; align-items:center; justify-content:center;
+  color: var(--charcoal); font-weight:700; font-size:14px;
+  transition: all .2s;
+}
+.zoom-btn:hover { background: linear-gradient(135deg, var(--rose), var(--hot)); color: #fff; border-color: transparent; }
+
+/* =========================================
+   TOAST
+   ========================================= */
+#toast {
+  position: fixed; top: 72px; right: 20px;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 12px; padding: 12px 16px;
+  box-shadow: var(--shadow-md); z-index: 200;
+  display: flex; align-items: center; gap: 9px;
+  transform: translateX(420px);
+  transition: transform .4s cubic-bezier(.2,.8,.2,1);
+}
+#toast.show { transform: translateX(0); }
+#toast svg { width:16px; height:16px; color:var(--hot); flex-shrink:0; }
+#toast .toast-msg { font-size:12px; color:var(--charcoal); font-weight:600; }
+
+/* =========================================
+   MODAL
+   ========================================= */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(44,24,34,.35);
+  backdrop-filter: blur(8px);
+  z-index: 300; display: none;
+  align-items: center; justify-content: center;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 20px; padding: clamp(24px,5vw,36px);
+  width: 440px; max-width: 92vw;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .4s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.92) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal h2 { font-family:var(--font-display); font-weight:700; font-size:clamp(20px,4vw,26px); color:var(--charcoal); margin-bottom:5px; }
+.modal p { font-size:12px; color:var(--warm-gray); margin-bottom:20px; }
+.opt-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.opt {
+  padding: 12px 6px; border: 1.5px solid var(--glass-border); border-radius: 10px;
+  background: transparent; cursor: pointer; text-align: center; transition: all .2s;
+  font-family: inherit; color: var(--charcoal);
+}
+.opt.active { background: linear-gradient(135deg, var(--rose), var(--hot)); color: #fff; border-color: transparent; box-shadow: var(--shadow-sm); }
+.opt:hover:not(.active) { border-color: var(--rose); background: rgba(232,121,154,.08); }
+.opt-title { font-size:12px; font-weight:700; display:block; margin-bottom:1px; }
+.opt-sub { font-size:9px; letter-spacing:.06em; text-transform:uppercase; opacity:.75; }
+.modal-actions { display:flex; gap:9px; margin-top:8px; }
+.btn-secondary { flex:1; padding:12px; border:1.5px solid var(--glass-border); background:transparent; border-radius:9999px; cursor:pointer; font-family:inherit; font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--charcoal); font-weight:600; transition:all .2s; }
+.btn-secondary:hover { border-color:var(--rose); color:var(--hot); }
+.btn-primary { flex:1; padding:12px; border:none; background:linear-gradient(135deg, var(--rose), var(--hot)); color:#fff; border-radius:9999px; cursor:pointer; font-family:inherit; font-size:11px; letter-spacing:.15em; text-transform:uppercase; font-weight:700; box-shadow:var(--shadow-sm); transition:all .3s; }
+.btn-primary:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+
+/* =========================================
+   MOBILE DRAWER (sidebar overlay on small)
+   ========================================= */
+.mobile-fab {
+  display: none;
+  position: fixed; bottom: 80px; left: 16px; z-index: 80;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose), var(--hot));
+  border: none; cursor: pointer;
+  align-items: center; justify-content: center;
+  box-shadow: var(--shadow-md);
+  color: #fff;
+}
+.mobile-fab svg { width: 20px; height: 20px; }
+
+.drawer-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(44,24,34,.4);
+  backdrop-filter: blur(4px);
+}
+.drawer-overlay.open { display: block; }
+
+.drawer {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 290px; z-index: 201;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border-right: 1.5px solid var(--glass-border);
+  overflow-y: auto; padding: 16px;
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-100%);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.drawer.open { transform: translateX(0); }
+.drawer-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.drawer-close { background:none; border:none; cursor:pointer; color:var(--warm-gray); padding:4px; }
+.drawer-close svg { width:20px; height:20px; }
+
+/* =========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================= */
+@media (max-width: 900px) {
+  aside.sidebar, aside.props { display: none; }
+  .mobile-fab { display: flex; }
+  #canvasContainer { width: min(540px, 92vw); height: min(720px, 72vh); }
+}
+@media (max-width: 600px) {
+  #canvasContainer { width: 92vw; height: 68vh; }
+  .bottom-bar { padding: 8px 14px; gap: 10px; font-size: 9px; }
+  .bb-item { font-size: 9px; }
+}
+@media (max-width: 400px) {
+  header { padding: 0 10px; }
+  .logo { font-size: 16px; }
+  #canvasContainer { width: 96vw; height: 65vh; }
+  .btn-export span { display: none; }
+}
+
+/* =========================================
+   SPARKLE DECORATIONS ON LANDING
+   ========================================= */
+@keyframes twinkle { 0%,100%{opacity:.2;transform:scale(1)} 50%{opacity:.8;transform:scale(1.4)} }
+.sparkle {
+  position: absolute; width: 4px; height: 4px;
+  background: var(--rose); border-radius: 50%;
+  animation: twinkle 2.5s ease-in-out infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="shimmer-bg"></div>
+<canvas id="flowerCanvas"></canvas>
+
+<!-- ===== LANDING ===== -->
+<section id="landing">
+  <!-- ornamental corner flowers -->
+  <div class="land-flower" style="top:6%;left:3%">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="22" rx="14" ry="22" fill="#E8799A" transform="rotate(0 50 50)"/>
+      <ellipse cx="50" cy="22" rx="14" ry="22" fill="#E8799A" transform="rotate(72 50 50)"/>
+      <ellipse cx="50" cy="22" rx="14" ry="22" fill="#D4457A" transform="rotate(144 50 50)"/>
+      <ellipse cx="50" cy="22" rx="14" ry="22" fill="#E8799A" transform="rotate(216 50 50)"/>
+      <ellipse cx="50" cy="22" rx="14" ry="22" fill="#D4457A" transform="rotate(288 50 50)"/>
+      <circle cx="50" cy="50" r="8" fill="#A82A5E"/>
+    </svg>
+  </div>
+  <div class="land-flower" style="top:4%;right:4%">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="20" rx="12" ry="20" fill="#F9C4D2" transform="rotate(0 50 50)"/>
+      <ellipse cx="50" cy="20" rx="12" ry="20" fill="#E8799A" transform="rotate(60 50 50)"/>
+      <ellipse cx="50" cy="20" rx="12" ry="20" fill="#F9C4D2" transform="rotate(120 50 50)"/>
+      <ellipse cx="50" cy="20" rx="12" ry="20" fill="#E8799A" transform="rotate(180 50 50)"/>
+      <ellipse cx="50" cy="20" rx="12" ry="20" fill="#F9C4D2" transform="rotate(240 50 50)"/>
+      <ellipse cx="50" cy="20" rx="12" ry="20" fill="#E8799A" transform="rotate(300 50 50)"/>
+      <circle cx="50" cy="50" r="7" fill="#F5D050"/>
+    </svg>
+  </div>
+  <div class="land-flower" style="bottom:8%;left:5%">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 8 Q60 30 50 52 Q40 30 50 8" fill="#FBEAF4" transform="rotate(0 50 50)"/>
+      <path d="M50 8 Q60 30 50 52 Q40 30 50 8" fill="#D4457A" transform="rotate(60 50 50)" opacity=".6"/>
+      <path d="M50 8 Q60 30 50 52 Q40 30 50 8" fill="#FBEAF4" transform="rotate(120 50 50)"/>
+      <path d="M50 8 Q60 30 50 52 Q40 30 50 8" fill="#D4457A" transform="rotate(180 50 50)" opacity=".6"/>
+      <path d="M50 8 Q60 30 50 52 Q40 30 50 8" fill="#FBEAF4" transform="rotate(240 50 50)"/>
+      <path d="M50 8 Q60 30 50 52 Q40 30 50 8" fill="#D4457A" transform="rotate(300 50 50)" opacity=".6"/>
+      <circle cx="50" cy="50" r="6" fill="#7A1F3F"/>
+    </svg>
+  </div>
+  <div class="land-flower" style="bottom:6%;right:4%">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#E8C5D8" transform="rotate(0 50 50)"/>
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#C96B90" transform="rotate(45 50 50)"/>
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#E8C5D8" transform="rotate(90 50 50)"/>
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#C96B90" transform="rotate(135 50 50)"/>
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#E8C5D8" transform="rotate(180 50 50)"/>
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#C96B90" transform="rotate(225 50 50)"/>
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#E8C5D8" transform="rotate(270 50 50)"/>
+      <ellipse cx="50" cy="22" rx="13" ry="20" fill="#C96B90" transform="rotate(315 50 50)"/>
+      <circle cx="50" cy="50" r="7" fill="#F5D050"/>
+    </svg>
+  </div>
+
+  <div class="landing-inner">
+    <div class="brand-pill">E-Bouqet Studio</div>
+    <h1 class="hero-title">
+      Craft your
+      <span class="cursive">perfect bouquet</span>
+    </h1>
+    <p class="hero-sub">Arrange Beauty &nbsp;&middot;&nbsp; Preserve Memory &nbsp;&middot;&nbsp; Share Love</p>
+    <div class="cta-wrap">
+      <button class="cta-btn" id="enterBtn">Enter the Studio</button>
+      <span class="cta-sub">Free forever · No signup</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">30+</div><div class="stat-lbl">World Flowers</div></div>
+      <div class="stat"><div class="stat-num">&infin;</div><div class="stat-lbl">Arrangements</div></div>
+      <div class="stat"><div class="stat-num">4K</div><div class="stat-lbl">Export Ready</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <header>
+    <div style="display:flex;align-items:center">
+      <div class="logo">E<span>Bouqet</span></div>
+      <div class="tag-mini">Arrange &middot; Preserve</div>
+    </div>
+    <div class="header-tools">
+      <button class="tool-btn active" title="Select">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7 19 2-8 8-2z"/></svg>
+      </button>
+      <button class="tool-btn hide-xs" id="gridToggle" title="Toggle Grid (G)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button class="tool-btn" id="undoBtn" title="Undo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-15-6.7L3 13"/></svg>
+      </button>
+      <button class="tool-btn" id="redoBtn" title="Redo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0115-6.7L21 13"/></svg>
+      </button>
+      <button class="tool-btn hide-xs" id="clearBtn" title="Clear">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/></svg>
+      </button>
+    </div>
+    <div class="header-right">
+      <button class="btn-export" id="exportBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Export</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar">
+      <input type="text" class="search-box" placeholder="Search blooms..." id="searchBox"/>
+      <div class="cat-tabs">
+        <button class="cat-tab active" data-cat="all">All</button>
+        <button class="cat-tab" data-cat="flower">Flowers</button>
+        <button class="cat-tab" data-cat="foliage">Foliage</button>
+        <button class="cat-tab" data-cat="vase">Vases</button>
+        <button class="cat-tab" data-cat="ribbon">Ribbons</button>
+        <button class="cat-tab" data-cat="accent">Accents</button>
+      </div>
+      <div id="assetContainer"></div>
+    </aside>
+
+    <div class="canvas-wrap">
+      <div id="canvasContainer">
+        <span class="canvas-corner tl"></span>
+        <span class="canvas-corner tr"></span>
+        <span class="canvas-corner bl"></span>
+        <span class="canvas-corner br"></span>
+      </div>
+      <div class="bottom-bar">
+        <div class="bb-item"><span id="objCount">0</span>&nbsp;Objects</div>
+        <div class="bb-divider"></div>
+        <button class="zoom-btn" id="zoomOut">−</button>
+        <div class="bb-item" id="zoomLabel">100%</div>
+        <button class="zoom-btn" id="zoomIn">+</button>
+        <div class="bb-divider"></div>
+        <div class="bb-item">3:4</div>
+      </div>
+    </div>
+
+    <!-- Desktop Props -->
+    <aside class="props">
+      <div class="empty-msg" id="emptyProps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <div>Select a flower<br>to edit properties</div>
+      </div>
+      <div id="propsContent" style="display:none">
+        <div class="prop-section">
+          <div class="section-label">Transform</div>
+          <div class="prop-row"><label>Rotation</label><span id="rotVal" class="prop-val">0°</span></div>
+          <input type="range" class="slider" id="rotSlider" min="-180" max="180" value="0"/>
+          <div class="prop-row" style="margin-top:12px"><label>Scale</label><span id="scaleVal" class="prop-val">100%</span></div>
+          <input type="range" class="slider" id="scaleSlider" min="20" max="300" value="100"/>
+        </div>
+        <div class="prop-section">
+          <div class="section-label">Appearance</div>
+          <div class="prop-row"><label>Opacity</label><span id="opVal" class="prop-val">100%</span></div>
+          <input type="range" class="slider" id="opSlider" min="0" max="100" value="100"/>
+        </div>
+        <div class="prop-section">
+          <div class="section-label">Layers</div>
+          <div class="btn-row">
+            <button class="btn-mini" data-action="front">Bring Front</button>
+            <button class="btn-mini" data-action="back">Send Back</button>
+            <button class="btn-mini" data-action="forward">Forward</button>
+            <button class="btn-mini" data-action="backward">Backward</button>
+          </div>
+        </div>
+        <div class="prop-section">
+          <div class="section-label">Actions</div>
+          <div class="btn-row">
+            <button class="btn-mini" data-action="flipH">Flip H</button>
+            <button class="btn-mini" data-action="flipV">Flip V</button>
+            <button class="btn-mini" data-action="duplicate">Duplicate</button>
+            <button class="btn-mini" data-action="delete" style="color:#D4457A">Delete</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- Mobile FAB & Drawer -->
+<button class="mobile-fab" id="mobileFab">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+</button>
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="mobileDrawer">
+  <div class="drawer-header">
+    <div style="font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--charcoal)">Add Flowers</div>
+    <button class="drawer-close" id="drawerClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <input type="text" class="search-box" placeholder="Search blooms..." id="searchBoxMobile"/>
+  <div class="cat-tabs" id="mobileTabsWrap">
+    <button class="cat-tab active" data-cat="all">All</button>
+    <button class="cat-tab" data-cat="flower">Flowers</button>
+    <button class="cat-tab" data-cat="foliage">Foliage</button>
+    <button class="cat-tab" data-cat="vase">Vases</button>
+    <button class="cat-tab" data-cat="ribbon">Ribbons</button>
+    <button class="cat-tab" data-cat="accent">Accents</button>
+  </div>
+  <div id="assetContainerMobile"></div>
+</div>
+
+<div id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  <div class="toast-msg">Welcome</div>
+</div>
+
+<div class="modal-bg" id="exportModal">
+  <div class="modal">
+    <h2>Export Arrangement</h2>
+    <p>Choose your preferred format and resolution</p>
+    <div class="section-label" style="margin-top:0">Quality</div>
+    <div class="opt-grid">
+      <button class="opt active" data-q="2"><span class="opt-title">Web</span><span class="opt-sub">72 DPI</span></button>
+      <button class="opt" data-q="4"><span class="opt-title">Print</span><span class="opt-sub">300 DPI</span></button>
+      <button class="opt" data-q="6"><span class="opt-title">Poster</span><span class="opt-sub">600 DPI</span></button>
+    </div>
+    <div class="section-label">Format</div>
+    <div class="opt-grid">
+      <button class="opt active" data-f="png"><span class="opt-title">PNG</span><span class="opt-sub">Transparent</span></button>
+      <button class="opt" data-f="jpeg"><span class="opt-title">JPEG</span><span class="opt-sub">White BG</span></button>
+      <button class="opt" data-f="sticker"><span class="opt-title">Sticker</span><span class="opt-sub">512×512</span></button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="cancelExport">Cancel</button>
+      <button class="btn-primary" id="confirmExport">Download</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======================================================
+   ASSET SVG GENERATORS
+   ====================================================== */
+function roundFlower(petals, color, accent, center) {
+  let p = '';
+  for (let i = 0; i < petals; i++) {
+    const a = (360 / petals) * i;
+    p += `<ellipse cx="50" cy="22" rx="13" ry="20" fill="${color}" transform="rotate(${a} 50 50)" opacity="0.95"/>`;
+  }
+  let inner = '';
+  for (let i = 0; i < 6; i++) {
+    const a = 60 * i + 30;
+    inner += `<ellipse cx="50" cy="36" rx="8" ry="14" fill="${accent}" transform="rotate(${a} 50 50)" opacity="0.85"/>`;
+  }
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${p}${inner}<circle cx="50" cy="50" r="7" fill="${center}"/></svg>`;
+}
+
+function ruffleFlower(petals, color, accent, center) {
+  let p = '';
+  for (let i = 0; i < petals; i++) {
+    const a = (360 / petals) * i;
+    p += `<path d="M50 12 Q58 20 62 30 Q60 42 50 48 Q40 42 38 30 Q42 20 50 12" fill="${color}" transform="rotate(${a} 50 50)" opacity="0.9"/>`;
+  }
+  let inner = '';
+  for (let i = 0; i < 6; i++) {
+    const a = 60 * i + 30;
+    inner += `<ellipse cx="50" cy="36" rx="7" ry="12" fill="${accent}" transform="rotate(${a} 50 50)" opacity="0.85"/>`;
+  }
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${p}${inner}<circle cx="50" cy="50" r="6" fill="${center}"/></svg>`;
+}
+
+/* ======================================================
+   WORLD FLOWER ASSETS — 35+ types
+   ====================================================== */
+const ASSETS = [
+  // ---- ROSES ----
+  { id:'redRose', name:'Red Rose', cat:'flower', svg: ruffleFlower(8,'#C73448','#8B1F2E','#5C0F1A') },
+  { id:'pinkRose', name:'Pink Rose', cat:'flower', svg: ruffleFlower(8,'#E89BB0','#C66E89','#8E4860') },
+  { id:'whiteRose', name:'White Rose', cat:'flower', svg: ruffleFlower(8,'#FFFCF7','#F0E8D8','#D4C8B0') },
+  { id:'coralRose', name:'Coral Rose', cat:'flower', svg: ruffleFlower(8,'#F5815A','#D46040','#9E3820') },
+  { id:'lavRose', name:'Lavender Rose', cat:'flower', svg: ruffleFlower(8,'#C8A8D4','#9A78B0','#5A3870') },
+
+  // ---- LILIES ----
+  { id:'stargazer', name:'Stargazer Lily', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2,3,4,5].map(i=>`<path d="M50 6 Q60 30 50 52 Q40 30 50 6" fill="#FBE4EC" transform="rotate(${60*i} 50 50)"/><path d="M50 14 Q56 30 50 48 Q44 30 50 14" fill="#D14B7A" transform="rotate(${60*i} 50 50)" opacity="0.55"/>`).join('')}<circle cx="50" cy="50" r="5" fill="#7A1F3F"/></svg>` },
+  { id:'calla', name:'Calla Lily', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 Q78 22 72 60 Q60 78 50 78 Q40 78 28 60 Q22 22 50 8 Z" fill="#FFFAF0"/><path d="M50 18 Q68 30 64 58 Q56 70 50 70 Q44 70 36 58 Q32 30 50 18 Z" fill="#F5E6C8" opacity="0.7"/><path d="M50 30 L52 72 L48 72 Z" fill="#E8B83A"/></svg>` },
+  { id:'orangeLily', name:'Tiger Lily', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2,3,4,5].map(i=>`<path d="M50 8 Q58 28 52 52 Q48 28 42 8 Q46 4 54 8" fill="#F58820" transform="rotate(${60*i} 50 50)"/><circle cx="50" cy="${16+(i%3)*3}" r="2" fill="#5A1A08" transform="rotate(${60*i} 50 50)"/>`).join('')}<circle cx="50" cy="50" r="5" fill="#C85A10"/></svg>` },
+
+  // ---- TULIPS & DAFFODILS ----
+  { id:'tulip', name:'Tulip', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 50 Q30 20 50 14 Q70 20 70 50 Q70 65 50 70 Q30 65 30 50 Z" fill="#E04848"/><path d="M40 22 Q50 16 60 22 Q56 38 50 40 Q44 38 40 22 Z" fill="#C0303A" opacity="0.6"/><path d="M50 70 L50 92" stroke="#558255" stroke-width="3"/></svg>` },
+  { id:'pinkTulip', name:'Pink Tulip', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 50 Q30 20 50 14 Q70 20 70 50 Q70 65 50 70 Q30 65 30 50 Z" fill="#F090B0"/><path d="M40 22 Q50 16 60 22 Q56 38 50 40 Q44 38 40 22 Z" fill="#D070A0" opacity="0.6"/><path d="M50 70 L50 92" stroke="#558255" stroke-width="3"/></svg>` },
+  { id:'daffodil', name:'Daffodil', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:6},(_,i)=>`<ellipse cx="50" cy="24" rx="10" ry="18" fill="#FFF060" transform="rotate(${60*i} 50 50)"/>`).join('')}<circle cx="50" cy="50" r="14" fill="#F8A000" stroke="#E08000" stroke-width="1.5"/><circle cx="50" cy="50" r="8" fill="none" stroke="#E08000" stroke-width="1.5"/></svg>` },
+
+  // ---- SUNFLOWER ----
+  { id:'sunflower', name:'Sunflower', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:16},(_,i)=>`<ellipse cx="50" cy="20" rx="6" ry="14" fill="#F2C849" transform="rotate(${22.5*i} 50 50)"/>`).join('')}${Array.from({length:16},(_,i)=>`<ellipse cx="50" cy="24" rx="5" ry="11" fill="#E0A83A" transform="rotate(${22.5*i+11} 50 50)" opacity="0.85"/>`).join('')}<circle cx="50" cy="50" r="14" fill="#5A3A1F"/></svg>` },
+
+  // ---- EXOTIC ----
+  { id:'orchid', name:'Orchid', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 14 Q34 22 30 38 Q40 42 50 36 Z" fill="#FBEAF4"/><path d="M50 14 Q66 22 70 38 Q60 42 50 36 Z" fill="#FBEAF4"/><path d="M14 50 Q22 34 38 30 Q42 40 36 50 Z" fill="#FBEAF4"/><path d="M86 50 Q78 34 62 30 Q58 40 64 50 Z" fill="#FBEAF4"/><path d="M40 60 Q50 80 60 60 Q66 50 50 50 Q34 50 40 60 Z" fill="#B85FA8"/><circle cx="50" cy="50" r="6" fill="#F2D050"/></svg>` },
+  { id:'bird', name:'Bird of Paradise', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M14 60 L30 30 L46 38 L40 60 Z" fill="#F58820"/><path d="M40 60 L56 28 L70 38 L60 62 Z" fill="#F5A030"/><path d="M60 62 L78 36 L88 50 L78 70 Z" fill="#3A6BBF"/><path d="M14 60 L88 70 L80 78 L20 72 Z" fill="#7A4A1A"/></svg>` },
+  { id:'protea', name:'Protea', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2].map(r=>{const sz=42-r*8;return Array.from({length:12},(_,j)=>`<path d="M50 ${50-sz} L56 ${50-sz+10} L50 ${50-sz+18} L44 ${50-sz+10} Z" fill="${r===0?'#E89BAA':r===1?'#D87A8E':'#B85770'}" transform="rotate(${30*j+r*15} 50 50)"/>`).join('')}).join('')}<circle cx="50" cy="50" r="8" fill="#F8DCE2"/></svg>` },
+  { id:'hibiscus', name:'Hibiscus', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:5},(_,i)=>`<path d="M50 10 Q60 30 58 50 Q50 56 42 50 Q40 30 50 10" fill="#E8305A" transform="rotate(${72*i} 50 50)" opacity="0.9"/>`).join('')}<line x1="50" y1="50" x2="50" y2="30" stroke="#F5A030" stroke-width="2"/><circle cx="50" cy="50" r="7" fill="#F5A030"/></svg>` },
+
+  // ---- PEONY, DAHLIA, HYDRANGEA ----
+  { id:'peony', name:'Peony', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2].map(r=>Array.from({length:10},(_,i)=>`<ellipse cx="50" cy="${30+r*4}" rx="${(26-r*6)/2}" ry="${26-r*6}" fill="${r===0?'#F5C0CC':r===1?'#E89BB0':'#D87A95'}" transform="rotate(${36*i+r*12} 50 50)" opacity="${0.95-r*0.05}"/>`).join('')).join('')}<circle cx="50" cy="50" r="6" fill="#C46580"/></svg>` },
+  { id:'dahlia', name:'Dahlia', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2,3].map(r=>{const cnt=8+r*2;return Array.from({length:cnt},(_,i)=>`<path d="M50 ${50-(42-r*8)} L54 ${50-(42-r*8)+10} L50 ${50-(42-r*8)+16} L46 ${50-(42-r*8)+10} Z" fill="${['#E04848','#D03B3B','#B82E2E','#9C2424'][r]}" transform="rotate(${(360/cnt)*i+r*8} 50 50)"/>`).join('')}).join('')}<circle cx="50" cy="50" r="4" fill="#F5C840"/></svg>` },
+  { id:'hydrangea', name:'Hydrangea', cat:'flower', svg: (()=>{ const pos=[[50,30],[34,42],[66,42],[26,58],[50,50],[74,58],[34,70],[50,72],[66,70]]; let p=''; pos.forEach(([cx,cy])=>{ for(let i=0;i<4;i++){const a=90*i; p+=`<path d="M${cx} ${cy-8} L${cx+7} ${cy} L${cx} ${cy+7} L${cx-7} ${cy} Z" fill="#E8A0C8" transform="rotate(${a} ${cx} ${cy})"/>`; } p+=`<circle cx="${cx}" cy="${cy}" r="1.5" fill="#A87098"/>`; }); return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${p}</svg>`; })() },
+
+  // ---- RANUNCULUS, ANEMONE, MUM, CARNATION ----
+  { id:'ranunculus', name:'Ranunculus', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2,3].map(r=>Array.from({length:8},(_,i)=>`<ellipse cx="50" cy="${34+r*3}" rx="${12-r*2}" ry="${18-r*3}" fill="${['#FFB8A8','#FF9E8C','#F58575','#E07060'][r]}" transform="rotate(${45*i+r*10} 50 50)" opacity="0.9"/>`).join('')).join('')}<circle cx="50" cy="50" r="5" fill="#90B07A"/></svg>` },
+  { id:'anemone', name:'Anemone', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:7},(_,i)=>`<ellipse cx="50" cy="22" rx="14" ry="22" fill="#E8A0CC" transform="rotate(${(360/7)*i} 50 50)" stroke="#C87AA8" stroke-width="0.8"/>`).join('')}<circle cx="50" cy="50" r="11" fill="#1A1A1A"/></svg>` },
+  { id:'mum', name:'Chrysanthemum', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2,3,4].map(r=>{const cnt=14+r*2;return Array.from({length:cnt},(_,i)=>`<ellipse cx="50" cy="${50-(44-r*7)/2-4}" rx="2.5" ry="${(44-r*7)/2}" fill="${['#F590A8','#E07890','#D06078','#B85068','#A04058'][r]}" transform="rotate(${(360/cnt)*i+r*5} 50 50)"/>`).join('')}).join('')}<circle cx="50" cy="50" r="5" fill="#A04060"/></svg>` },
+  { id:'carnation', name:'Carnation', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2].map(r=>Array.from({length:10},(_,i)=>`<path d="M50 14 Q53 18 56 22 Q54 26 50 26 Q46 26 44 22 Q47 18 50 14" fill="${['#F590A8','#E07A92','#C8607A'][r]}" transform="rotate(${36*i+r*8} 50 50)"/>`).join('')).join('')}<circle cx="50" cy="50" r="5" fill="#A04860"/></svg>` },
+
+  // ---- MORE WORLD FLOWERS ----
+  { id:'freesia', name:'Freesia', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 30 Q40 20 50 30 Q40 40 30 30 Z" fill="#FFF8DC"/><path d="M50 24 Q62 14 72 24 Q62 34 50 24 Z" fill="#FFFCEB"/><path d="M40 50 Q52 40 62 50 Q52 60 40 50 Z" fill="#FFFAE0"/><path d="M58 64 Q70 54 80 64 Q70 74 58 64 Z" fill="#FFF8DC"/><path d="M30 30 Q40 50 58 64" stroke="#7A9568" stroke-width="2" fill="none"/><circle cx="40" cy="30" r="2" fill="#E8B83A"/><circle cx="61" cy="24" r="2" fill="#E8B83A"/></svg>` },
+  { id:'lisianthus', name:'Lisianthus', cat:'flower', svg: ruffleFlower(6,'#C8B0E0','#9C82C0','#5C3F8A') },
+  { id:'gardenia', name:'Gardenia', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[0,1,2].map(r=>Array.from({length:6},(_,i)=>`<ellipse cx="50" cy="${30+r*3}" rx="${14-r*2}" ry="${20-r*3}" fill="${['#FFFFFF','#FBF6E8','#F0E8D0'][r]}" transform="rotate(${60*i+r*20} 50 50)" opacity="${0.95-r*0.05}" stroke="#D8CBA8" stroke-width="0.5"/>`).join('')).join('')}<circle cx="50" cy="50" r="5" fill="#E8D88C"/></svg>` },
+  { id:'bougainvillea', name:'Bougainvillea', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:6},(_,i)=>`<path d="M50 12 Q62 28 58 50 Q50 58 42 50 Q38 28 50 12" fill="#E8407A" transform="rotate(${60*i} 50 50)" opacity="0.88"/>`).join('')}<circle cx="50" cy="50" r="5" fill="#FFFAE0"/></svg>` },
+  { id:'magnolia', name:'Magnolia', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:9},(_,i)=>`<path d="M50 8 Q58 24 56 44 Q50 52 44 44 Q42 24 50 8" fill="${i%2===0?'#FBEAF4':'#E8C8D8'}" transform="rotate(${40*i} 50 50)" opacity="0.92"/>`).join('')}<circle cx="50" cy="50" r="9" fill="#E8B060"/></svg>` },
+  { id:'lotus', name:'Lotus', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:8},(_,i)=>`<path d="M50 10 Q62 26 60 48 Q50 56 40 48 Q38 26 50 10" fill="${i%2===0?'#F8C0D0':'#F090B0'}" transform="rotate(${45*i} 50 50)" opacity="0.9"/>`).join('')}<circle cx="50" cy="50" r="10" fill="#F5D050"/></svg>` },
+  { id:'cherryBlossom', name:'Cherry Blossom', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${Array.from({length:5},(_,i)=>`<path d="M50 14 Q60 26 58 44 Q50 50 42 44 Q40 26 50 14" fill="#FCC8D4" transform="rotate(${72*i} 50 50)" opacity="0.9"/>`).join('')}<circle cx="50" cy="50" r="7" fill="#FFDDEE"/>${Array.from({length:12},(_,i)=>`<line x1="50" y1="50" x2="${50+20*Math.cos(i*30*Math.PI/180)}" y2="${50+20*Math.sin(i*30*Math.PI/180)}" stroke="#E87090" stroke-width="0.7" opacity="0.7"/>`).join('')}</svg>` },
+  { id:'wisteria', name:'Wisteria', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 Q50 40 50 90" stroke="#9870C0" stroke-width="1.5" fill="none"/>${Array.from({length:10},(_,i)=>`<circle cx="${48+Math.sin(i*.8)*10}" cy="${20+i*7}" r="${5-i*.2}" fill="${i%2===0?'#C8A8E0':'#A880C8'}" opacity="${0.9-i*.05}"/>`).join('')}</svg>` },
+  { id:'jasmine', name:'Jasmine', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${[{x:30,y:35},{x:55,y:22},{x:72,y:40},{x:60,y:62},{x:35,y:65}].map(({x,y})=>Array.from({length:5},(_,i)=>`<ellipse cx="${x}" cy="${y-7}" rx="5" ry="9" fill="#FFFCF0" transform="rotate(${72*i} ${x} ${y})" stroke="#E8DCA8" stroke-width="0.4"/>`).join('')+'<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="#F5E080"/>').join('')}</svg>` },
+  { id:'lavender', name:'Lavender', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 92 L50 18" stroke="#8878A8" stroke-width="2"/>${Array.from({length:10},(_,i)=>`<ellipse cx="${47+Math.cos(i)*4}" cy="${22+i*6}" rx="5" ry="4" fill="${i%2===0?'#B8A0D0':'#9880B8'}" transform="rotate(${i%2===0?-20:20} ${47+Math.cos(i)*4} ${22+i*6})"/>`).join('')}</svg>` },
+  { id:'bluebell', name:'Bluebell', cat:'flower', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 80 Q50 40 52 12" stroke="#7090B8" stroke-width="1.5" fill="none"/>${[{x:44,y:18,r:-30},{x:38,y:32,r:-20},{x:58,y:25,r:25},{x:46,y:48,r:-15}].map(({x,y,r})=>`<path d="M${x} ${y} Q${x-6} ${y+8} ${x} ${y+16} Q${x+6} ${y+8} ${x} ${y}" fill="#7090D8" transform="rotate(${r} ${x} ${y+8})" opacity="0.85"/>`).join('')}</svg>` },
+
+  // ---- FOLIAGE ----
+  { id:'eucalyptus', name:'Eucalyptus', cat:'foliage', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 90 Q50 50 50 10" stroke="#7A8E68" stroke-width="2" fill="none"/><ellipse cx="40" cy="80" rx="10" ry="6" fill="#A8B89C" transform="rotate(-20 40 80)"/><ellipse cx="60" cy="70" rx="10" ry="6" fill="#9CAF88" transform="rotate(20 60 70)"/><ellipse cx="38" cy="58" rx="10" ry="6" fill="#A8B89C" transform="rotate(-25 38 58)"/><ellipse cx="62" cy="48" rx="10" ry="6" fill="#9CAF88" transform="rotate(25 62 48)"/><ellipse cx="40" cy="36" rx="9" ry="5.5" fill="#A8B89C" transform="rotate(-30 40 36)"/><ellipse cx="58" cy="24" rx="8" ry="5" fill="#9CAF88" transform="rotate(30 58 24)"/></svg>` },
+  { id:'babyBlue', name:'Baby Blue', cat:'foliage', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 90 Q48 50 52 10" stroke="#6B8898" stroke-width="2" fill="none"/><circle cx="38" cy="78" r="7" fill="#9CB8C0"/><circle cx="60" cy="68" r="7" fill="#B0C4CC"/><circle cx="36" cy="56" r="7" fill="#9CB8C0"/><circle cx="62" cy="44" r="7" fill="#B0C4CC"/><circle cx="40" cy="32" r="6" fill="#9CB8C0"/><circle cx="56" cy="20" r="5" fill="#B0C4CC"/></svg>` },
+  { id:'fern', name:'Fern', cat:'foliage', svg: (()=>{ let p='<path d="M50 92 L50 8" stroke="#558255" stroke-width="2"/>'; for(let i=0;i<8;i++){const y=86-i*10,sz=18-i*1.5; p+=`<path d="M50 ${y} Q${50-sz} ${y-3} ${50-sz-2} ${y+2} Q${50-sz/2} ${y+4} 50 ${y}" fill="#6B8E5A"/><path d="M50 ${y} Q${50+sz} ${y-3} ${50+sz+2} ${y+2} Q${50+sz/2} ${y+4} 50 ${y}" fill="#558255"/>`;} return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${p}</svg>`; })() },
+  { id:'ruscus', name:'Ruscus', cat:'foliage', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 92 Q50 50 50 8" stroke="#3F6B3F" stroke-width="1.8" fill="none"/><path d="M50 78 Q35 75 30 80 Q40 85 50 82 Z" fill="#558255"/><path d="M50 64 Q65 60 72 66 Q60 72 50 70 Z" fill="#558255"/><path d="M50 50 Q35 46 30 52 Q40 58 50 56 Z" fill="#558255"/><path d="M50 36 Q65 32 72 38 Q60 44 50 42 Z" fill="#558255"/><path d="M50 22 Q35 18 32 24 Q40 30 50 28 Z" fill="#558255"/></svg>` },
+  { id:'dustyMiller', name:'Dusty Miller', cat:'foliage', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 90 Q50 50 50 10" stroke="#9CA8A0" stroke-width="1.5" fill="none"/><path d="M30 70 Q40 60 50 70 Q40 80 30 70 Z" fill="#C8D0C0" stroke="#A8B0A0" stroke-width="0.5"/><path d="M70 60 Q60 50 50 60 Q60 70 70 60 Z" fill="#C8D0C0" stroke="#A8B0A0" stroke-width="0.5"/><path d="M30 40 Q40 30 50 40 Q40 50 30 40 Z" fill="#C8D0C0" stroke="#A8B0A0" stroke-width="0.5"/><path d="M70 30 Q60 20 50 30 Q60 40 70 30 Z" fill="#C8D0C0" stroke="#A8B0A0" stroke-width="0.5"/></svg>` },
+
+  // ---- VASES ----
+  { id:'glass', name:'Glass', cat:'vase', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 20 L30 88 Q30 92 34 92 L66 92 Q70 92 70 88 L70 20 Z" fill="#E8F0F5" opacity="0.75" stroke="#A8C0CC" stroke-width="1"/><ellipse cx="50" cy="20" rx="20" ry="3" fill="#C8DCE5" opacity="0.8"/><path d="M34 30 L34 80" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/></svg>` },
+  { id:'urn', name:'Ceramic Urn', cat:'vase', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M28 30 L25 45 Q22 65 28 80 Q35 90 50 90 Q65 90 72 80 Q78 65 75 45 L72 30 Z" fill="#F5D0E0" stroke="#C09890" stroke-width="1"/><ellipse cx="50" cy="30" rx="22" ry="4" fill="#E8C0D0"/><path d="M30 50 Q50 55 70 50" stroke="#C09890" fill="none" stroke-width="0.8"/></svg>` },
+  { id:'brass', name:'Brass', cat:'vase', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,15 80,40 80,80 50,90 20,80 20,40" fill="#F5DCA0" opacity="0.4" stroke="#C9A96E" stroke-width="2"/><line x1="50" y1="15" x2="50" y2="90" stroke="#C9A96E" stroke-width="1.5"/><line x1="20" y1="40" x2="80" y2="40" stroke="#C9A96E" stroke-width="1.5"/></svg>` },
+  { id:'crystal', name:'Crystal', cat:'vase', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M28 25 L32 90 L68 90 L72 25 Z" fill="#F8E8F0" opacity="0.7" stroke="#E0B8D0" stroke-width="1"/><polygon points="32,30 40,30 38,40 34,40" fill="#FFF" opacity="0.6"/><polygon points="42,30 50,30 49,42 43,42" fill="#FFF" opacity="0.5"/></svg>` },
+
+  // ---- RIBBONS ----
+  { id:'silkRose', name:'Silk Rose', cat:'ribbon', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M20 50 Q35 30 50 50 Q65 70 80 50 Q65 30 50 50 Q35 70 20 50 Z" fill="#F9C4D2" stroke="#E099B8" stroke-width="0.8"/><circle cx="50" cy="50" r="6" fill="#E8799A"/></svg>` },
+  { id:'silkHot', name:'Hot Pink', cat:'ribbon', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M20 50 Q35 30 50 50 Q65 70 80 50 Q65 30 50 50 Q35 70 20 50 Z" fill="#E8407A" stroke="#C02858" stroke-width="0.8"/><circle cx="50" cy="50" r="6" fill="#C02858"/></svg>` },
+  { id:'velvet', name:'Velvet', cat:'ribbon', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="46" width="70" height="8" fill="#A82A5E" rx="1"/><rect x="15" y="46" width="70" height="3" fill="#D0406E" opacity="0.6"/></svg>` },
+  { id:'lace', name:'Lace', cat:'ribbon', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="44" width="70" height="12" fill="#FFFCF5" opacity="0.95"/><circle cx="22" cy="50" r="2" fill="none" stroke="#E8C0D0" stroke-width="0.8"/><circle cx="32" cy="50" r="2" fill="none" stroke="#E8C0D0" stroke-width="0.8"/><circle cx="42" cy="50" r="2" fill="none" stroke="#E8C0D0" stroke-width="0.8"/><circle cx="52" cy="50" r="2" fill="none" stroke="#E8C0D0" stroke-width="0.8"/><circle cx="62" cy="50" r="2" fill="none" stroke="#E8C0D0" stroke-width="0.8"/><circle cx="72" cy="50" r="2" fill="none" stroke="#E8C0D0" stroke-width="0.8"/></svg>` },
+
+  // ---- ACCENTS ----
+  { id:'pampas', name:'Pampas Grass', cat:'accent', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 92 Q50 50 50 10" stroke="#C8B488" stroke-width="1.5" fill="none"/><ellipse cx="50" cy="20" rx="14" ry="22" fill="#E8DCC0" opacity="0.85"/><ellipse cx="50" cy="22" rx="11" ry="19" fill="#F0E8D0" opacity="0.8"/></svg>` },
+  { id:'cotton', name:'Cotton', cat:'accent', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 92 Q50 60 50 30" stroke="#5A4828" stroke-width="1.5" fill="none"/><circle cx="35" cy="40" r="10" fill="#FFFCF5"/><circle cx="50" cy="30" r="11" fill="#FFFCF5"/><circle cx="65" cy="42" r="10" fill="#FFFCF5"/><circle cx="42" cy="55" r="9" fill="#FFFFFF"/><circle cx="58" cy="55" r="9" fill="#FFFFFF"/></svg>` },
+  { id:'wheat', name:'Wheat', cat:'accent', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 92 L50 18" stroke="#C8A858" stroke-width="1.5"/><ellipse cx="42" cy="26" rx="3" ry="5" fill="#E8C878" transform="rotate(-30 42 26)"/><ellipse cx="58" cy="26" rx="3" ry="5" fill="#E8C878" transform="rotate(30 58 26)"/><ellipse cx="50" cy="20" rx="3" ry="6" fill="#E8C878"/><ellipse cx="42" cy="38" rx="3" ry="5" fill="#E8C878" transform="rotate(-30 42 38)"/><ellipse cx="58" cy="38" rx="3" ry="5" fill="#E8C878" transform="rotate(30 58 38)"/></svg>` },
+];
+
+/* ======================================================
+   FALLING FLOWERS ANIMATION — 50 flowers, 14 types
+   ====================================================== */
+const flowerCanvas = document.getElementById('flowerCanvas');
+const fctx = flowerCanvas.getContext('2d');
+function resizeFC() { flowerCanvas.width = innerWidth; flowerCanvas.height = innerHeight; }
+resizeFC();
+addEventListener('resize', resizeFC);
+
+// Pre-render flower shapes as small offscreen canvases
+const flowerTypes = [
+  // rose
+  (ctx, sz, col) => {
+    for (let i = 0; i < 8; i++) {
+      ctx.save(); ctx.translate(sz/2, sz/2); ctx.rotate(i * Math.PI / 4);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(0, -sz*.28, sz*.14, sz*.26, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.restore();
+    }
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*.08, 0, Math.PI*2); ctx.fill();
+  },
+  // round petal
+  (ctx, sz, col) => {
+    for (let i = 0; i < 6; i++) {
+      ctx.save(); ctx.translate(sz/2, sz/2); ctx.rotate(i * Math.PI / 3);
+      ctx.fillStyle = col; ctx.globalAlpha = .9;
+      ctx.beginPath();
+      ctx.ellipse(0, -sz*.28, sz*.13, sz*.22, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.restore();
+    }
+    ctx.fillStyle = '#F5D050'; ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*.1, 0, Math.PI*2); ctx.fill();
+  },
+  // 5 petal
+  (ctx, sz, col) => {
+    for (let i = 0; i < 5; i++) {
+      ctx.save(); ctx.translate(sz/2, sz/2); ctx.rotate(i * 2 * Math.PI / 5);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(0, -sz*.3, sz*.13, sz*.28, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.restore();
+    }
+    ctx.fillStyle = '#FFF060'; ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*.09, 0, Math.PI*2); ctx.fill();
+  },
+  // daisy
+  (ctx, sz, col) => {
+    for (let i = 0; i < 12; i++) {
+      ctx.save(); ctx.translate(sz/2, sz/2); ctx.rotate(i * Math.PI / 6);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(0, -sz*.3, sz*.06, sz*.22, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.restore();
+    }
+    ctx.fillStyle = '#F5C840'; ctx.beginPath(); ctx.arc(sz/2, sz/2, sz*.12, 0, Math.PI*2); ctx.fill();
+  },
+  // tulip shape
+  (ctx, sz, col) => {
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(sz/2, sz*.1);
+    ctx.bezierCurveTo(sz*.72, sz*.18, sz*.78, sz*.5, sz*.72, sz*.72);
+    ctx.bezierCurveTo(sz*.62, sz*.84, sz*.38, sz*.84, sz*.28, sz*.72);
+    ctx.bezierCurveTo(sz*.22, sz*.5, sz*.28, sz*.18, sz/2, sz*.1);
+    ctx.fill();
+  },
+  // leaf / petal teardrop
+  (ctx, sz, col) => {
+    ctx.fillStyle = col; ctx.globalAlpha = .8;
+    ctx.beginPath();
+    ctx.moveTo(sz/2, sz*.05);
+    ctx.bezierCurveTo(sz*.78, sz*.25, sz*.75, sz*.7, sz/2, sz*.92);
+    ctx.bezierCurveTo(sz*.25, sz*.7, sz*.22, sz*.25, sz/2, sz*.05);
+    ctx.fill();
+  },
+  // star
+  (ctx, sz, col) => {
+    ctx.fillStyle = col;
+    ctx.save(); ctx.translate(sz/2, sz/2);
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 === 0 ? sz*.42 : sz*.18;
+      const a = (i * Math.PI / 5) - Math.PI/2;
+      i === 0 ? ctx.moveTo(r*Math.cos(a), r*Math.sin(a)) : ctx.lineTo(r*Math.cos(a), r*Math.sin(a));
+    }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  },
+  // hibiscus style
+  (ctx, sz, col) => {
+    for (let i = 0; i < 5; i++) {
+      ctx.save(); ctx.translate(sz/2, sz/2); ctx.rotate(i * 2*Math.PI/5);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(sz*.28, -sz*.14, sz*.35, -sz*.45, 0, -sz*.44);
+      ctx.bezierCurveTo(-sz*.35, -sz*.45, -sz*.28, -sz*.14, 0, 0);
+      ctx.fill(); ctx.restore();
+    }
+  },
+];
+
+// Fall colors — all pink/purple/white/blush tones
+const fallColors = [
+  '#F9C4D2','#E8799A','#D4457A','#F5EBF0',
+  '#EDB8CC','#C96B90','#F8D7E8','#E8C5D8',
+  '#FFB8D0','#FDE4EC','#B85FA8','#D4A0C0',
+  '#FAD0DC','#C8A8D4','#F090B0','#FFCCE0',
+];
+
+const PETAL_COUNT = 55;
+const flowerPetals = [];
+for (let i = 0; i < PETAL_COUNT; i++) {
+  const type = Math.floor(Math.random() * flowerTypes.length);
+  const sz = 14 + Math.random() * 22;
+  const col = fallColors[Math.floor(Math.random() * fallColors.length)];
+
+  // Pre-render to offscreen canvas
+  const oc = document.createElement('canvas');
+  oc.width = sz; oc.height = sz;
+  const octx = oc.getContext('2d');
+  octx.globalAlpha = 1;
+  flowerTypes[type](octx, sz, col);
+
+  flowerPetals.push({
+    oc,
+    x: Math.random() * innerWidth,
+    y: Math.random() * innerHeight - innerHeight,
+    sz,
+    speed: .4 + Math.random() * 1.1,
+    sway: .6 + Math.random() * 1.6,
+    swayOff: Math.random() * Math.PI * 2,
+    rot: Math.random() * Math.PI * 2,
+    rotSpd: (Math.random() - .5) * .05,
+    op: .2 + Math.random() * .5,
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpd: .01 + Math.random() * .02,
+  });
+}
+
+let ft = 0;
+function animateFlowers() {
+  fctx.clearRect(0, 0, flowerCanvas.width, flowerCanvas.height);
+  ft += .016;
+  flowerPetals.forEach(p => {
+    p.y += p.speed;
+    p.x += Math.sin(ft + p.swayOff) * p.sway * .35;
+    p.rot += p.rotSpd;
+    p.wobble += p.wobbleSpd;
+    if (p.y > innerHeight + 40) { p.y = -40; p.x = Math.random() * innerWidth; }
+    fctx.save();
+    fctx.translate(p.x, p.y);
+    fctx.rotate(p.rot + Math.sin(p.wobble) * .15);
+    fctx.globalAlpha = p.op;
+    fctx.drawImage(p.oc, -p.sz/2, -p.sz/2);
+    fctx.restore();
+  });
+  requestAnimationFrame(animateFlowers);
+}
+animateFlowers();
+
+/* ======================================================
+   IMAGE CACHE + KONVA STATE
+   ====================================================== */
+const imgCache = {};
+function loadAssetImage(asset) {
+  return new Promise((resolve, reject) => {
+    if (imgCache[asset.id]) return resolve(imgCache[asset.id]);
+    const img = new Image();
+    const encoded = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(asset.svg)));
+    img.onload = () => { imgCache[asset.id] = img; resolve(img); };
+    img.onerror = (e) => reject(e);
+    img.src = encoded;
+  });
+}
+
+let state = { objects:[], selected:null, history:[], future:[], zoom:1, gridOn:true };
+let stage, bgLayer, mainLayer, overlayLayer, transformer;
+
+function initStage() {
+  const container = document.getElementById('canvasContainer');
+  const w = Math.min(600, container.clientWidth);
+  const h = Math.round(w * 4/3);
+  stage = new Konva.Stage({ container:'canvasContainer', width:w, height:h });
+  bgLayer = new Konva.Layer(); stage.add(bgLayer);
+  mainLayer = new Konva.Layer(); stage.add(mainLayer);
+  overlayLayer = new Konva.Layer(); stage.add(overlayLayer);
+  transformer = new Konva.Transformer({
+    rotateEnabled:true, keepRatio:true,
+    borderStroke:'#E8799A', borderStrokeWidth:1.5, borderDash:[4,4],
+    anchorFill:'#FFFFFF', anchorStroke:'#E8799A', anchorStrokeWidth:1.5,
+    anchorSize:10, anchorCornerRadius:5, rotateAnchorOffset:22,
+  });
+  overlayLayer.add(transformer);
+  transformer.on('transformend', () => { syncSliders(); pushHistory(); });
+  stage.on('click tap', (e) => { if (e.target === stage) deselect(); });
+}
+
+/* ======================================================
+   ASSET PANELS — desktop + mobile
+   ====================================================== */
+function renderAssets(filter='all', search='', containerId='assetContainer') {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  const cats = filter === 'all' ? ['flower','foliage','vase','ribbon','accent'] : [filter];
+  const labels = { flower:'Flowers · World Collection', foliage:'Foliage', vase:'Vases', ribbon:'Ribbons', accent:'Accents' };
+  cats.forEach(cat => {
+    const list = ASSETS.filter(a => a.cat === cat && a.name.toLowerCase().includes(search.toLowerCase()));
+    if (!list.length) return;
+    const lbl = document.createElement('div');
+    lbl.className = 'section-label'; lbl.textContent = labels[cat];
+    c.appendChild(lbl);
+    const grid = document.createElement('div'); grid.className = 'asset-grid';
+    list.forEach(a => {
+      const el = document.createElement('div'); el.className = 'asset';
+      el.innerHTML = `<div class="asset-svg">${a.svg}</div><div class="asset-name">${a.name}</div>`;
+      el.addEventListener('click', () => { addObject(a); closeDrawer(); });
+      grid.appendChild(el);
+    });
+    c.appendChild(grid);
+  });
+}
+
+/* ======================================================
+   ADD OBJECT
+   ====================================================== */
+async function addObject(asset) {
+  try {
+    const img = await loadAssetImage(asset);
+    const sz = asset.cat==='vase'?200:asset.cat==='ribbon'?130:(asset.cat==='foliage'||asset.cat==='accent')?150:120;
+    const cx = stage.width()/2 + (Math.random()-.5)*100;
+    const cy = asset.cat==='vase' ? stage.height()*.76 : stage.height()/2 + (Math.random()-.5)*160;
+    const node = new Konva.Image({
+      image:img, x:cx, y:cy, width:sz, height:sz,
+      offsetX:sz/2, offsetY:sz/2,
+      draggable:true, rotation:(Math.random()-.5)*10,
+      shadowColor:'rgba(168,42,94,0.2)', shadowBlur:10, shadowOffsetY:4, shadowOpacity:.5,
+      scaleX:0, scaleY:0, opacity:0,
+    });
+    node.assetId=asset.id; node.assetName=asset.name; node.assetCat=asset.cat;
+    mainLayer.add(node);
+    gsap.to(node, { duration:.55, opacity:1, onUpdate:()=>mainLayer.batchDraw() });
+    gsap.to(node, {
+      duration:.75, scaleX:1.12, scaleY:1.12, ease:'elastic.out(1,.55)',
+      onUpdate:()=>mainLayer.batchDraw(),
+      onComplete:()=>{
+        gsap.to(node,{duration:.28,scaleX:1,scaleY:1,ease:'power2.out',onUpdate:()=>mainLayer.batchDraw()});
+      }
+    });
+    node.on('click tap', () => selectObject(node));
+    node.on('dragstart', ()=>{
+      gsap.to(node,{duration:.2,scaleX:1.05,scaleY:1.05,onUpdate:()=>mainLayer.batchDraw()});
+      node.shadowBlur(22); node.shadowOffsetY(12);
+    });
+    node.on('dragend', ()=>{
+      gsap.to(node,{duration:.38,scaleX:1,scaleY:1,ease:'elastic.out(1,.6)',onUpdate:()=>mainLayer.batchDraw()});
+      node.shadowBlur(10); node.shadowOffsetY(4);
+      pushHistory();
+    });
+    state.objects.push(node); selectObject(node); pushHistory(); updateObjectCount();
+    toast(`${asset.name} added`);
+  } catch(err) { toast('Failed to add'); }
+}
+
+/* ======================================================
+   SELECTION
+   ====================================================== */
+function selectObject(node) {
+  state.selected = node; transformer.nodes([node]); overlayLayer.batchDraw();
+  document.getElementById('emptyProps').style.display='none';
+  document.getElementById('propsContent').style.display='block';
+  syncSliders();
+}
+function syncSliders() {
+  if (!state.selected) return;
+  const n = state.selected;
+  document.getElementById('rotSlider').value = Math.round(n.rotation());
+  document.getElementById('rotVal').textContent = Math.round(n.rotation())+'°';
+  document.getElementById('scaleSlider').value = Math.round(Math.abs(n.scaleX())*100);
+  document.getElementById('scaleVal').textContent = Math.round(Math.abs(n.scaleX())*100)+'%';
+  document.getElementById('opSlider').value = Math.round(n.opacity()*100);
+  document.getElementById('opVal').textContent = Math.round(n.opacity()*100)+'%';
+}
+function deselect() {
+  state.selected=null; transformer.nodes([]); overlayLayer.batchDraw();
+  document.getElementById('emptyProps').style.display='block';
+  document.getElementById('propsContent').style.display='none';
+}
+
+/* ======================================================
+   ACTIONS
+   ====================================================== */
+function layerAction(a) {
+  if (!state.selected) return;
+  if (a==='front') state.selected.moveToTop();
+  else if (a==='back') state.selected.moveToBottom();
+  else if (a==='forward') state.selected.moveUp();
+  else if (a==='backward') state.selected.moveDown();
+  mainLayer.batchDraw(); pushHistory();
+}
+function flipObj(d) {
+  if (!state.selected) return;
+  if (d==='h') state.selected.scaleX(-state.selected.scaleX());
+  else state.selected.scaleY(-state.selected.scaleY());
+  mainLayer.batchDraw(); pushHistory();
+}
+async function duplicateObj() {
+  if (!state.selected) return;
+  const orig=state.selected, asset=ASSETS.find(a=>a.id===orig.assetId);
+  if (!asset) return;
+  const img = await loadAssetImage(asset);
+  const clone = new Konva.Image({
+    image:img, x:orig.x()+28, y:orig.y()+28, width:orig.width(), height:orig.height(),
+    offsetX:orig.offsetX(), offsetY:orig.offsetY(), draggable:true,
+    rotation:orig.rotation(), scaleX:orig.scaleX(), scaleY:orig.scaleY(), opacity:orig.opacity(),
+    shadowColor:'rgba(168,42,94,0.2)', shadowBlur:10, shadowOffsetY:4,
+  });
+  clone.assetId=asset.id; clone.assetName=asset.name; clone.assetCat=asset.cat;
+  clone.on('click tap',()=>selectObject(clone));
+  clone.on('dragend',()=>pushHistory());
+  mainLayer.add(clone); state.objects.push(clone);
+  selectObject(clone); mainLayer.batchDraw(); pushHistory(); updateObjectCount();
+  toast('Duplicated');
+}
+function deleteObj() {
+  if (!state.selected) return;
+  const n = state.selected;
+  gsap.to(n, {
+    duration:.3, opacity:0, scaleX:0, scaleY:0, ease:'power2.in',
+    onUpdate:()=>mainLayer.batchDraw(),
+    onComplete:()=>{ n.destroy(); state.objects=state.objects.filter(o=>o!==n); deselect(); mainLayer.batchDraw(); updateObjectCount(); pushHistory(); }
+  });
+}
+
+/* ======================================================
+   HISTORY
+   ====================================================== */
+function pushHistory() {
+  state.history.push(JSON.stringify(state.objects.map(serializeNode)));
+  if (state.history.length>50) state.history.shift();
+  state.future=[];
+}
+function serializeNode(n) {
+  return { assetId:n.assetId, x:n.x(), y:n.y(), w:n.width(), h:n.height(),
+    ox:n.offsetX(), oy:n.offsetY(), rot:n.rotation(), sx:n.scaleX(), sy:n.scaleY(), op:n.opacity() };
+}
+async function restoreFrom(snap) {
+  state.objects.forEach(o=>o.destroy()); state.objects=[];
+  const arr = JSON.parse(snap);
+  for (const d of arr) {
+    const a=ASSETS.find(x=>x.id===d.assetId); if (!a) continue;
+    const img=await loadAssetImage(a);
+    const node=new Konva.Image({
+      image:img, x:d.x, y:d.y, width:d.w, height:d.h,
+      offsetX:d.ox, offsetY:d.oy, rotation:d.rot,
+      scaleX:d.sx, scaleY:d.sy, opacity:d.op, draggable:true,
+      shadowColor:'rgba(168,42,94,0.2)', shadowBlur:10, shadowOffsetY:4
+    });
+    node.assetId=a.id; node.assetName=a.name; node.assetCat=a.cat;
+    node.on('click tap',()=>selectObject(node));
+    node.on('dragend',()=>pushHistory());
+    mainLayer.add(node); state.objects.push(node);
+  }
+  deselect(); mainLayer.batchDraw(); updateObjectCount();
+}
+
+/* ======================================================
+   SLIDERS
+   ====================================================== */
+function bindSliders() {
+  document.getElementById('rotSlider').addEventListener('input', e => {
+    if (!state.selected) return;
+    state.selected.rotation(+e.target.value);
+    document.getElementById('rotVal').textContent=e.target.value+'°';
+    mainLayer.batchDraw();
+  });
+  document.getElementById('rotSlider').addEventListener('change',()=>pushHistory());
+  document.getElementById('scaleSlider').addEventListener('input', e => {
+    if (!state.selected) return;
+    const v=+e.target.value/100;
+    state.selected.scaleX(state.selected.scaleX()<0?-v:v);
+    state.selected.scaleY(state.selected.scaleY()<0?-v:v);
+    document.getElementById('scaleVal').textContent=e.target.value+'%';
+    mainLayer.batchDraw();
+  });
+  document.getElementById('scaleSlider').addEventListener('change',()=>pushHistory());
+  document.getElementById('opSlider').addEventListener('input', e => {
+    if (!state.selected) return;
+    state.selected.opacity(+e.target.value/100);
+    document.getElementById('opVal').textContent=e.target.value+'%';
+    mainLayer.batchDraw();
+  });
+  document.getElementById('opSlider').addEventListener('change',()=>pushHistory());
+}
+
+/* ======================================================
+   ZOOM / GRID / COUNT
+   ====================================================== */
+function zoomCanvas(d) {
+  state.zoom=Math.max(.4,Math.min(2,state.zoom+d));
+  document.getElementById('canvasContainer').style.transform=`scale(${state.zoom})`;
+  document.getElementById('zoomLabel').textContent=Math.round(state.zoom*100)+'%';
+}
+function updateObjectCount() {
+  document.getElementById('objCount').textContent=state.objects.length;
+}
+
+/* ======================================================
+   EXPORT
+   ====================================================== */
+let exportQ=2, exportF='png';
+function openExport() { document.getElementById('exportModal').classList.add('show'); }
+function closeExport() { document.getElementById('exportModal').classList.remove('show'); }
+function performExport() {
+  const wasSelected=state.selected;
+  transformer.nodes([]); overlayLayer.batchDraw();
+  setTimeout(()=>{
+    try {
+      const ts=new Date().toISOString().replace(/[:.]/g,'').slice(0,15);
+      let dataURL;
+      if (exportF==='jpeg') {
+        const w=stage.width()*exportQ, h=stage.height()*exportQ;
+        const tmp=document.createElement('canvas'); tmp.width=w; tmp.height=h;
+        const ctx=tmp.getContext('2d'); ctx.fillStyle='#FFF9FC'; ctx.fillRect(0,0,w,h);
+        const stImg=new Image();
+        stImg.onload=()=>{
+          ctx.drawImage(stImg,0,0,w,h);
+          triggerDownload(tmp.toDataURL('image/jpeg',.95),`bouquet_${ts}.jpg`);
+          if (wasSelected){transformer.nodes([wasSelected]);overlayLayer.batchDraw();}
+        };
+        stImg.src=stage.toDataURL({pixelRatio:exportQ});
+      } else if (exportF==='sticker') {
+        dataURL=stage.toDataURL({pixelRatio:1,width:512,height:512});
+        triggerDownload(dataURL,`sticker_${ts}.png`);
+        if (wasSelected){transformer.nodes([wasSelected]);overlayLayer.batchDraw();}
+      } else {
+        dataURL=stage.toDataURL({pixelRatio:exportQ,mimeType:'image/png'});
+        triggerDownload(dataURL,`bouquet_${ts}.png`);
+        if (wasSelected){transformer.nodes([wasSelected]);overlayLayer.batchDraw();}
+      }
+      closeExport(); toast('Arrangement exported');
+    } catch(err) { toast('Export failed'); }
+  },100);
+}
+function triggerDownload(url, filename) {
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ======================================================
+   TOAST
+   ====================================================== */
+let toastT;
+function toast(msg) {
+  document.querySelector('#toast .toast-msg').textContent=msg;
+  document.getElementById('toast').classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>document.getElementById('toast').classList.remove('show'),2600);
+}
+
+/* ======================================================
+   MOBILE DRAWER
+   ====================================================== */
+function openDrawer() {
+  document.getElementById('mobileDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  renderAssets('all','','assetContainerMobile');
+}
+function closeDrawer() {
+  document.getElementById('mobileDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+
+/* ======================================================
+   ENTER STUDIO
+   ====================================================== */
+function enterStudio() {
+  document.getElementById('landing').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  setTimeout(()=>{
+    initStage(); renderAssets(); bindSliders(); pushHistory();
+    toast('Welcome — tap flowers to begin');
+  },150);
+}
+
+/* ======================================================
+   EVENT BINDINGS
+   ====================================================== */
+document.getElementById('enterBtn').addEventListener('click', enterStudio);
+document.getElementById('mobileFab').addEventListener('click', openDrawer);
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+
+// Desktop tabs
+document.querySelectorAll('.cat-tab:not(#mobileTabsWrap .cat-tab)').forEach(t=>{
+  if (t.closest('#mobileTabsWrap')) return;
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('aside.sidebar .cat-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    renderAssets(t.dataset.cat, document.getElementById('searchBox').value, 'assetContainer');
+  });
+});
+
+// Mobile tabs
+document.getElementById('mobileTabsWrap').querySelectorAll('.cat-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.getElementById('mobileTabsWrap').querySelectorAll('.cat-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    renderAssets(t.dataset.cat, document.getElementById('searchBoxMobile').value, 'assetContainerMobile');
+  });
+});
+
+document.getElementById('searchBox').addEventListener('input', e=>{
+  const active=document.querySelector('aside.sidebar .cat-tab.active').dataset.cat;
+  renderAssets(active, e.target.value, 'assetContainer');
+});
+document.getElementById('searchBoxMobile').addEventListener('input', e=>{
+  const active=document.querySelector('#mobileTabsWrap .cat-tab.active').dataset.cat;
+  renderAssets(active, e.target.value, 'assetContainerMobile');
+});
+
+document.getElementById('gridToggle').addEventListener('click',()=>{
+  state.gridOn=!state.gridOn;
+  document.getElementById('canvasContainer').classList.toggle('no-grid',!state.gridOn);
+});
+document.getElementById('undoBtn').addEventListener('click',()=>{
+  if (state.history.length<2) return;
+  state.future.push(state.history.pop());
+  restoreFrom(state.history[state.history.length-1]);
+  toast('Undone');
+});
+document.getElementById('redoBtn').addEventListener('click',()=>{
+  if (!state.future.length) return;
+  const s=state.future.pop(); state.history.push(s); restoreFrom(s); toast('Redone');
+});
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  if (!state.objects.length) return;
+  state.objects.forEach(n=>{
+    gsap.to(n,{duration:.35,opacity:0,scaleX:0,scaleY:0,ease:'power2.in',
+      onUpdate:()=>mainLayer.batchDraw(),onComplete:()=>n.destroy()});
+  });
+  setTimeout(()=>{ state.objects=[]; deselect(); updateObjectCount(); pushHistory(); toast('Canvas cleared'); },400);
+});
+document.getElementById('zoomIn').addEventListener('click',()=>zoomCanvas(.1));
+document.getElementById('zoomOut').addEventListener('click',()=>zoomCanvas(-.1));
+document.getElementById('exportBtn').addEventListener('click', openExport);
+document.getElementById('cancelExport').addEventListener('click', closeExport);
+document.getElementById('confirmExport').addEventListener('click', performExport);
+
+document.querySelectorAll('.opt[data-q]').forEach(o=>o.addEventListener('click',()=>{
+  document.querySelectorAll('.opt[data-q]').forEach(x=>x.classList.remove('active'));
+  o.classList.add('active'); exportQ=+o.dataset.q;
+}));
+document.querySelectorAll('.opt[data-f]').forEach(o=>o.addEventListener('click',()=>{
+  document.querySelectorAll('.opt[data-f]').forEach(x=>x.classList.remove('active'));
+  o.classList.add('active'); exportF=o.dataset.f;
+}));
+
+document.addEventListener('click', e=>{
+  const btn=e.target.closest('[data-action]'); if (!btn) return;
+  const a=btn.dataset.action;
+  if (['front','back','forward','backward'].includes(a)) layerAction(a);
+  else if (a==='flipH') flipObj('h');
+  else if (a==='flipV') flipObj('v');
+  else if (a==='duplicate') duplicateObj();
+  else if (a==='delete') deleteObj();
+});
+
+document.addEventListener('keydown', e=>{
+  if (e.target.tagName==='INPUT') return;
+  if ((e.key==='Delete'||e.key==='Backspace')&&state.selected){e.preventDefault();deleteObj();}
+  if (e.key==='g'||e.key==='G') document.getElementById('gridToggle').click();
+  if ((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();document.getElementById('undoBtn').click();}
+  if ((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='Z'))){e.preventDefault();document.getElementById('redoBtn').click();}
+  if ((e.ctrlKey||e.metaKey)&&e.key==='e'){e.preventDefault();openExport();}
+  if ((e.ctrlKey||e.metaKey)&&e.key==='d'){e.preventDefault();duplicateObj();}
+});
+
+// Resize stage responsively
+window.addEventListener('resize', ()=>{
+  if (!stage) return;
+  const container=document.getElementById('canvasContainer');
+  const w=Math.min(600,container.clientWidth);
+  const h=Math.round(w*4/3);
+  stage.width(w); stage.height(h);
+  mainLayer.batchDraw(); overlayLayer.batchDraw();
+});
+</script>
+</body>
+</html>
