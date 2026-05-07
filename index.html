@@ -246,6 +246,7 @@ aside.sidebar{
   padding:6px 11px;border-radius:9999px;border:1.5px solid var(--gb);background:transparent;
   cursor:pointer;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--gray);transition:all .25s;font-family:inherit;font-weight:600;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
 .cat-tab.active{background:linear-gradient(135deg,var(--rose),var(--hot));color:#fff;border-color:transparent;box-shadow:var(--s-sm)}
 .cat-tab:hover:not(.active){background:rgba(212,69,122,.08);color:var(--hot);border-color:var(--rose)}
@@ -255,6 +256,7 @@ aside.sidebar{
   aspect-ratio:1;background:var(--cream);border:1.5px solid var(--gb);border-radius:12px;
   cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:5px;transition:all .25s;position:relative;overflow:hidden;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
 .asset::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(249,196,210,.45),rgba(212,69,122,.1));opacity:0;transition:opacity .25s}
 .asset:hover{transform:translateY(-4px) scale(1.03);box-shadow:var(--s-md);border-color:var(--rose)}
@@ -501,16 +503,18 @@ font-family:var(--fh);color:var(--charcoal);font-style:normal;font-weight:700;
   background:linear-gradient(135deg,var(--rose),var(--hot));
   border:none;cursor:pointer;align-items:center;justify-content:center;
   box-shadow:var(--s-md);color:#fff;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
 .mobile-fab svg{width:20px;height:20px}
 .drawer-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(44,24,34,.38);backdrop-filter:blur(4px)}
 .drawer-overlay.open{display:block}
 .drawer{
-  position:fixed;left:0;bottom:0;right:0;max-height:70vh;z-index:201;
+  position:fixed;left:0;bottom:0;right:0;max-height:80vh;z-index:201;
   background:var(--glass);backdrop-filter:blur(20px);
   border-top:1.5px solid var(--gb);border-radius:20px 20px 0 0;
   overflow-y:auto;padding:16px;box-shadow:0 -8px 32px rgba(168,42,94,.15);
   transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  -webkit-overflow-scrolling:touch;
 }
 .drawer.open{transform:translateY(0)}
 .drawer-handle{width:40px;height:4px;background:var(--lav);border-radius:2px;margin:0 auto 12px}
@@ -547,6 +551,7 @@ font-family:var(--fh);color:var(--charcoal);font-style:normal;font-weight:700;
 .share-btn-dl{background:var(--cream);border:1.5px solid var(--gb) !important;color:var(--charcoal)}
 .share-btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
 </style>
+<script type='text/javascript' src='https://pl29371007.profitablecpmratenetwork.com/e8/58/a7/e858a7fb2cd7342888a1d30722ea139c.js'></script>
 </head>
 <body>
 <div class="shimmer-bg"></div>
@@ -1180,6 +1185,18 @@ function renderAssets(filter='all',search='',cid='assetContainer',aiMode=false){
           addObject(a);closeDrawer();
         }
       });
+      // Touch support: fire immediately on touchend to avoid 300ms mobile delay
+      el.addEventListener('touchend',(e)=>{
+        e.preventDefault();
+        if(aiMode){
+          const idx=aiSelected.findIndex(x=>x.id===a.id);
+          if(idx>=0)aiSelected.splice(idx,1);else aiSelected.push(a);
+          el.classList.toggle('ai-selected',aiSelected.findIndex(x=>x.id===a.id)>=0);
+          document.getElementById('aiSelCount').textContent=aiSelected.length+' selected';
+        } else {
+          addObject(a);closeDrawer();
+        }
+      });
       grid.appendChild(el);
     });
     c.appendChild(grid);
@@ -1499,7 +1516,14 @@ function toast(msg){document.querySelector('#toast .toast-msg').textContent=msg;
 /* ============================================================
    MOBILE DRAWER
    ============================================================ */
-function openDrawer(){document.getElementById('mobileDrawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');renderAssets('all','','assetContainerMobile');}
+function openDrawer(){
+  const activeCat=document.querySelector('#mobileTabs .cat-tab.active');
+  const cat=activeCat?activeCat.dataset.cat:'all';
+  const search=document.getElementById('searchBoxMobile').value||'';
+  document.getElementById('mobileDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  renderAssets(cat,search,'assetContainerMobile');
+}
 function closeDrawer(){document.getElementById('mobileDrawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');}
 
 /* ============================================================
@@ -1608,6 +1632,11 @@ document.getElementById('searchBoxMobile').addEventListener('input',e=>{
   const act=document.querySelector('#mobileTabs .cat-tab.active').dataset.cat;
   renderAssets(act,e.target.value,'assetContainerMobile');
 });
+
+// Mobile FAB & Drawer (these were missing — critical for mobile!)
+document.getElementById('mobileFab').addEventListener('click', openDrawer);
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 
 document.getElementById('gridToggle').addEventListener('click',()=>{state.gridOn=!state.gridOn;document.getElementById('canvasContainer').classList.toggle('no-grid',!state.gridOn);});
 document.getElementById('undoBtn').addEventListener('click',()=>{if(state.history.length<2)return;state.future.push(state.history.pop());restoreFrom(state.history[state.history.length-1]);toast('Undone');});
